@@ -3,7 +3,7 @@
 
 Overview
 ========
-Simple CLI utility for save/update Outlines (bookmarks), Metadata and file Attachments into PDF files.
+Simple CLI utility for save/update Outlines (bookmarks), Metadata and Attached (embedded) files into PDF files.
 
 
 Usage
