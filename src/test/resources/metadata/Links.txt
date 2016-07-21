@@ -1,0 +1,5 @@
+https://www.w3.org/TR/WCAG20-TECHS/PDF18.html
+https://www.w3.org/WAI/WCAG20/Techniques/working-examples/PDF18/title-bar.pdf
+
+http://developers.itextpdf.com/examples/miscellaneous/adding-metadata/
+http://gitlab.itextsupport.com/itext/sandbox/blob/master/cmpfiles/stamper/cmp_state_metadata.pdf

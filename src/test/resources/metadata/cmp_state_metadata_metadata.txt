@@ -1,0 +1,6 @@
+Author|iText
+CreationDate|D:20160509130030+02'00'
+Creator|Microsoft® Word 2010
+ModDate|D:20160509130030+02'00'
+Producer|Microsoft® Word 2010; modified using iText® 5.5.10-SNAPSHOT ©2000-2015 iText Group NV (AGPL-version)
+Title|New title

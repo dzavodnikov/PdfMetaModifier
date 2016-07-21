@@ -1,0 +1,90 @@
+apply plugin: 'java'
+
+tasks.withType(JavaCompile) {
+    // See: 
+    //      https://stackoverflow.com/questions/21028438/
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    // See: 
+    //      https://mrhaki.blogspot.ru/2012/06/gradle-goodness-set-java-compiler.html
+    options.encoding = 'UTF-8'
+}
+
+test {
+     maxHeapSize = '512m' // To be compatible with Travis-CI infrastructure.
+}
+
+jar {
+    // See: 
+    //      https://stackoverflow.com/questions/6768295/
+    baseName    = jarName
+    version     = jarVersion
+
+    manifest {
+        attributes('Main-Class'                 : jarMainClass          ) // Executable class.
+        attributes('Implementation-Title'       : rootProject.name      )
+        attributes('Implementation-Version'     : rootProject.version   )
+        attributes('Implementation-Vendor'      : rootProject.vendor    )
+        attributes('Implementation-Vendor-Id'   : rootProject.vendor_id )
+        attributes('Specification-Title'        : rootProject.name      )
+        attributes('Specification-Version'      : rootProject.version   )
+        attributes('Specification-Vendor'       : rootProject.vendor    )
+        attributes('Specification-Vendor-Id'    : rootProject.vendor_id )
+    }
+
+    // Add all dependencies (making uber/fat JAR).
+    // See: 
+    //      https://stackoverflow.com/questions/4871656/
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    exclude 'scripts'                                           // We are no need scripts inside of JAR file.
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA' // See: https://stackoverflow.com/questions/999489/
+}
+
+apply plugin: 'eclipse'
+
+// See: 
+//      https://stackoverflow.com/questions/10156847/
+eclipse.classpath {
+    downloadSources = true
+    downloadJavadoc = true
+}
+
+apply plugin: 'distribution'
+
+distributions.main {
+    baseName = rootProject.name // See: https://discuss.gradle.org/t/7512/
+
+    // See: 
+    //      https://discuss.gradle.org/t/12874/
+    contents {
+        from jar                                // Copy generated JAR.
+        from('src/main/resources/scripts') {    // Copy run scripts to distr.
+            fileMode 0755                       // Set them proper flags. See: https://discuss.gradle.org/t/6660/
+        }
+    }
+}
+// See:
+//      https://discuss.gradle.org/t/501/
+tasks.withType(Tar){
+    compression = Compression.GZIP  // Use *.tgz instead of *.tar.
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name    'JitPack'
+        url     'https://jitpack.io/'
+    }
+}
+
+dependencies {
+    compile     'com.itextpdf:itextpdf:5.+'
+    compile     'org.bouncycastle:bcpkix-jdk15on:1.+'
+    compile     'org.bouncycastle:bcprov-jdk15on:1.+'
+    compile     'net.sf.jopt-simple:jopt-simple:5.+'
+    testCompile 'junit:junit:4.+'
+}
