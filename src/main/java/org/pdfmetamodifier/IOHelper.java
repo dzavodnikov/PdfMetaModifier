@@ -376,7 +376,6 @@ public class IOHelper {
 
         final PDEmbeddedFile embeddedFile = getEmbeddedFile(fileSpec);
         saveBytesToFile(embeddedFile.toByteArray(), file);
-
     }
 
     private static PDEmbeddedFile getEmbeddedFile(final PDComplexFileSpecification fileSpec) {
@@ -478,6 +477,18 @@ public class IOHelper {
                     document.getDocumentCatalog());
             documentNameDictionary.setEmbeddedFiles(null);
             document.getDocumentCatalog().setNames(documentNameDictionary);
+
+            // Create temporary PDF file for result.
+            if (TEMP_PDF.exists()) {
+                TEMP_PDF.delete();
+            }
+
+            // Save result to temporary PDF file.
+            document.save(TEMP_PDF);
+
+            // Replace original PDF file.
+            pdfFile.delete();
+            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             document.close();
         }
@@ -536,6 +547,18 @@ public class IOHelper {
                 // Add the new node as kid to the root node.
                 kids.add(embeddedFilesNameTree);
             }
+
+            // Create temporary PDF file for result.
+            if (TEMP_PDF.exists()) {
+                TEMP_PDF.delete();
+            }
+
+            // Save result to temporary PDF file.
+            document.save(TEMP_PDF);
+
+            // Replace original PDF file.
+            pdfFile.delete();
+            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             document.close();
         }
