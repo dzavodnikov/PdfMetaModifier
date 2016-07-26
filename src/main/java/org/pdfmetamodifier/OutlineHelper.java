@@ -170,6 +170,25 @@ public class OutlineHelper {
         return lines;
     }
 
+    private static PDOutlineItem createOutlineItem(final String title) {
+        final PDOutlineItem outlineItem = new PDOutlineItem();
+
+        outlineItem.setTitle(title);
+        outlineItem.closeNode();
+
+        return outlineItem;
+    }
+
+    private static PDOutlineItem createOutlineItem(final String title, final int pageNumber, final PDPageTree pages) {
+        final PDOutlineItem outlineItem = createOutlineItem(title);
+
+        final PDPageDestination destination = new PDPageFitDestination();
+        destination.setPage(pages.get(pageNumber - 1));
+        outlineItem.setDestination(destination);
+
+        return outlineItem;
+    }
+
     /**
      * Convert list of lines to Outlines (bookmarks) object.
      * 
@@ -194,35 +213,28 @@ public class OutlineHelper {
 
                     final String title = matcher.group("title");
 
-                    PDOutlineItem bookmark = null;
+                    PDOutlineItem outlineItem = null;
                     final int separatorLastIndex = title.lastIndexOf("|");
                     if (separatorLastIndex >= 0) {
                         try {
-                            // Create Outline (bookmark) with page number.
-                            bookmark = new PDOutlineItem();
-
                             // Set title.
                             final String correctTitle = title.substring(0, separatorLastIndex);
-                            bookmark.setTitle(correctTitle);
 
                             // Set page destination.
                             final int pageNumber = Integer.parseInt(title.substring(separatorLastIndex + 1));
-                            final PDPageDestination destination = new PDPageFitDestination();
-                            destination.setPage(pages.get(pageNumber - 1));
-                            bookmark.setDestination(destination);
+
+                            // Create Outline (bookmark) with page number.
+                            outlineItem = createOutlineItem(correctTitle, pageNumber, pages);
                         } catch (NumberFormatException e) {
                             // Ignore: we have Outline (bookmark) without page number.
                         }
                     }
-                    if (bookmark == null) {
+                    if (outlineItem == null) {
                         // Create Outline (bookmark) without page number.
-                        bookmark = new PDOutlineItem();
-
-                        // Set title.
-                        bookmark.setTitle(title);
+                        outlineItem = createOutlineItem(title);
                     }
                     // Map lines to generated Outline (bookmark).
-                    linesToBookmarks.put(line, bookmark);
+                    linesToBookmarks.put(line, outlineItem);
                     // Remember level of Outline (bookmark).
                     shifts.add(shift);
                     // Find parent position.
@@ -233,9 +245,9 @@ public class OutlineHelper {
                     if (parentPosition >= 0) {
                         final String parentLine = lineList.get(parentPosition);
                         final PDOutlineItem parentBookmark = linesToBookmarks.get(parentLine);
-                        parentBookmark.addLast(bookmark);
+                        parentBookmark.addLast(outlineItem);
                     } else {
-                        outlines.addLast(bookmark);
+                        outlines.addLast(outlineItem);
                     }
                 } else {
                     shifts.add(Integer.MAX_VALUE);
