@@ -82,9 +82,9 @@ repositories {
 }
 
 dependencies {
-    compile     'com.itextpdf:itextpdf:5.+'
-    compile     'org.bouncycastle:bcpkix-jdk15on:1.+'
-    compile     'org.bouncycastle:bcprov-jdk15on:1.+'
+    compile     'org.apache.pdfbox:pdfbox:2.+'
+    compile     'org.apache.pdfbox:xmpbox:2.+'
     compile     'net.sf.jopt-simple:jopt-simple:5.+'
     testCompile 'junit:junit:4.+'
+    testCompile 'org.mockito:mockito-core:1.+'
 }

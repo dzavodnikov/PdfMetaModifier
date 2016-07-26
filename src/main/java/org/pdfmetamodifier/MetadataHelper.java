@@ -1,80 +1,88 @@
 /*
- * PdfBookmarksModifier -- Simple CLI utility for save/update bookmarks into PDF files
- * Copyright (c) 2012-2016 PdfBookmarksModifier Team
- * 
- * This program is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU Affero General Public License as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License 
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (c) 2012-2016 PdfMetaModifier Team
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * This file is part of PdfMetaModifier.
  */
 package org.pdfmetamodifier;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+
 /**
- * Helper with methods for modify PDF metadata.
+ * Helper with methods for modify PDF Metadata.
  * 
  * @author Dmitry Zavodnikov (d.zavodnikov@gmail.com)
  */
 public class MetadataHelper {
 
-    public static final String  METADATA_LINE_TEMPLATE = "%s|%s";
+    public static final String  METADATA_LINE_TEMPLATE = "%s" + OutlineHelper.SEPARATOR + "%s";
 
-    public static final Pattern METADATA_LINE_PATTERN  = Pattern.compile("(?<key>.+)\\|(?<value>.*)");
+    public static final Pattern METADATA_LINE_PATTERN  = Pattern
+            .compile("(?<key>.+)\\" + OutlineHelper.SEPARATOR + "(?<value>.*)");
 
     /**
-     * Convert metadata structure to list of strings.
+     * Convert Metadata object to list of lines.
      * 
      * @param metadata
-     *            Source metadata object.
-     * @return string representation of metadata.
+     *            Source Metadata object.
+     * @return list of lines with Metadata representation.
      */
-    public static List<String> metadataToStringList(final Map<String, String> metadata) {
-        final List<String> stringList = new ArrayList<>();
-        if (metadata != null) {
-            final List<String> keys = new ArrayList<>(metadata.keySet());
-            Collections.sort(keys);
-            for (String key : keys) {
-                final String value = metadata.get(key);
+    public static List<String> metadataToLineList(final PDDocumentInformation documentInformation) {
+        final List<String> lineList = new ArrayList<>();
 
-                stringList.add(String.format(METADATA_LINE_TEMPLATE, key, value != null ? value : ""));
+        if (documentInformation != null) {
+            final List<String> matadataKeys = new ArrayList<>(documentInformation.getMetadataKeys());
+            Collections.sort(matadataKeys);
+
+            for (String key : matadataKeys) {
+                final String value = documentInformation.getCustomMetadataValue(key);
+                if (value != null) {
+                    lineList.add(String.format(METADATA_LINE_TEMPLATE, key, value));
+                }
             }
         }
-        return stringList;
+
+        return lineList;
     }
 
     /**
-     * Convert string representation of metadata to metadata object.
+     * Convert list of lines to Metadata object.
      * 
-     * @param stringList
-     *            String representation of metadata.
-     * @return metadata object.
+     * @param lineList
+     *            Source list of lines with Metadata representation.
+     * @return Metadata object.
      */
-    public static Map<String, String> stringListToMetadata(final List<String> stringList) {
-        final Map<String, String> metadata = new HashMap<>();
-        if (stringList != null) {
-            for (String line : stringList) {
+    public static PDDocumentInformation stringListToMetadata(final List<String> lineList) {
+        final PDDocumentInformation documentInformation = new PDDocumentInformation();
+
+        if (lineList != null) {
+            for (String line : lineList) {
                 final Matcher matcher = METADATA_LINE_PATTERN.matcher(line);
                 if (!matcher.matches()) {
                     throw new IllegalArgumentException(String.format("Metadata line have a wrong format: '%s'!", line));
                 }
-                metadata.put(matcher.group("key"), matcher.group("value"));
+                documentInformation.setCustomMetadataValue(matcher.group("key"), matcher.group("value"));
             }
         }
-        return metadata;
+
+        return documentInformation;
     }
 }

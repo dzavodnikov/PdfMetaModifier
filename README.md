@@ -3,14 +3,14 @@
 
 Overview
 ========
-Simple CLI utility for save/update Outlines (bookmarks), Metadata and Attached (embedded) files into PDF files.
+Simple CLI utility for save/update Outlines (bookmarks), Metadata and Embedded (attached) files into PDF files.
 
 
 Features
 ========
  * save/update Outlines (bookmarks);
  * save/update Metadata;
- * save/remove/add Attached (embedded) files.
+ * save/remove/add Embedded (attached) files.
 
 Usage
 =====
@@ -65,21 +65,21 @@ For example:
     Title|
 
 
-Attached (embedded) files
+Embedded (attached) files
 -------------------------
-Save all attached (embedded) files from PDF to specified directory:
+Save all Embedded (attached) files from PDF to specified directory:
 
     $ pmm --pdf Book.pdf --save-attachments Book_attachments
 
-Remove all attached (embedded) files from PDF file:
+Remove all Embedded (attached) files from PDF file:
 
     $ pmm --pdf Book.pdf --remove-attachments
 
-Add 2 attached (embedded) files (`Cover.png` and `Source.tar.gz`) to PDF file:
+Add 2 Embedded (attached) files (`Cover.png` and `Source.tar.gz`) to PDF file:
 
     $ pmm --pdf Book.pdf --add-attachment Cover.png --add-attachment Source.tar.gz
 
 
 License
 =======
-Distributed under GNU AGPL 3.0.
+Distributed under Apache License 2.0.

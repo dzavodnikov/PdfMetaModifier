@@ -1,24 +1,26 @@
 /*
- * PdfBookmarksModifier -- Simple CLI utility for save/update bookmarks into PDF files
- * Copyright (c) 2012-2016 PdfBookmarksModifier Team
- * 
- * This program is free software: you can redistribute it and/or modify 
- * it under the terms of the GNU Affero General Public License as 
- * published by the Free Software Foundation, either version 3 of the 
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License 
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (c) 2012-2016 PdfMetaModifier Team
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * This file is part of PdfMetaModifier.
  */
 package org.pdfmetamodifier;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,20 +30,24 @@ import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.pdf.PRStream;
-import com.itextpdf.text.pdf.PdfArray;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfFileSpecification;
-import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.SimpleBookmark;
-import com.itextpdf.text.pdf.SimpleNamedDestination;
+import org.apache.pdfbox.pdmodel.PDDestinationNameTreeNode;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDDocumentInformation;
+import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
+import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageTree;
+import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 
 /**
  * Helper with methods for modify PDF file.
@@ -57,22 +63,34 @@ public class IOHelper {
         final List<String> lines = new ArrayList<>();
 
         if (file != null && file.exists()) {
-            final FileInputStream fis = new FileInputStream(file);
-            final InputStreamReader isr = new InputStreamReader(fis);
-            final BufferedReader br = new BufferedReader(isr);
+            FileInputStream fis = null;
+            InputStreamReader isr = null;
+            BufferedReader br = null;
 
-            String line = null;
-            while ((line = br.readLine()) != null) {
-                if (line.isEmpty()) {
-                    continue; // Ignore empty lines.
+            try {
+                fis = new FileInputStream(file);
+                isr = new InputStreamReader(fis);
+                br = new BufferedReader(isr);
+
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    if (line.isEmpty()) {
+                        continue; // Ignore empty lines.
+                    }
+
+                    lines.add(line);
                 }
-
-                lines.add(line);
+            } finally {
+                if (br != null) {
+                    br.close();
+                }
+                if (isr != null) {
+                    isr.close();
+                }
+                if (fis != null) {
+                    fis.close();
+                }
             }
-
-            br.close();
-            isr.close();
-            fis.close();
         }
 
         return lines;
@@ -87,18 +105,29 @@ public class IOHelper {
                 file.getParentFile().mkdirs();
             }
 
-            final FileOutputStream fos = new FileOutputStream(file);
-            final OutputStreamWriter osw = new OutputStreamWriter(fos);
-            final BufferedWriter bw = new BufferedWriter(osw);
+            FileOutputStream fos = null;
+            OutputStreamWriter osw = null;
+            BufferedWriter bw = null;
+            try {
+                fos = new FileOutputStream(file);
+                osw = new OutputStreamWriter(fos);
+                bw = new BufferedWriter(osw);
 
-            for (String line : lines) {
-                bw.write(line);
-                bw.newLine();
+                for (String line : lines) {
+                    bw.write(line);
+                    bw.newLine();
+                }
+            } finally {
+                if (bw != null) {
+                    bw.close();
+                }
+                if (osw != null) {
+                    osw.close();
+                }
+                if (fos != null) {
+                    fos.close();
+                }
             }
-
-            bw.close();
-            osw.close();
-            fos.close();
         }
     }
 
@@ -111,11 +140,38 @@ public class IOHelper {
                 file.getParentFile().mkdirs();
             }
 
-            final FileOutputStream fos = new FileOutputStream(file);
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(file);
 
-            fos.write(bytes);
+                fos.write(bytes);
+            } finally {
+                if (fos != null) {
+                    fos.close();
+                }
+            }
+        }
+    }
 
-            fos.close();
+    private static byte[] readBytesToFile(final File file) throws IOException {
+        if (file != null) {
+            FileInputStream fis = null;
+            try {
+                final byte[] buffer = new byte[(int) file.length()];
+
+                fis = new FileInputStream(file);
+                if (fis.read(buffer) == -1) {
+                    throw new IOException("EOF reached while trying to read the whole file.");
+                }
+
+                return buffer;
+            } finally {
+                if (fis != null) {
+                    fis.close();
+                }
+            }
+        } else {
+            return null;
         }
     }
 
@@ -130,30 +186,40 @@ public class IOHelper {
      */
     /*
      * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/bookmark-examples/
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/CreateBookmarks.java?view=markup
      */
     public static void saveOutlines(final File pdfFile, final File outlinesFile) throws IOException {
-        // Read PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
+        PDDocument document = null;
+        try {
+            // Read PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
+            }
 
-        // Get data from PDF file.
-        List<HashMap<String, Object>> bookmarks = SimpleBookmark.getBookmark(reader);
-        if (bookmarks == null) {
-            bookmarks = new ArrayList<>();
+            // Get data from PDF file.
+            final PDDocumentCatalog catalog = document.getDocumentCatalog();
+
+            final PDDocumentOutline outlines = catalog.getDocumentOutline();
+
+            final PDPageTree pageTree = catalog.getPages();
+
+            PDDestinationNameTreeNode destinationNameTree = null;
+            final PDDocumentNameDictionary nameDict = catalog.getNames();
+            if (nameDict != null) {
+                destinationNameTree = nameDict.getDests();
+            }
+
+            // Convert.
+            final List<String> lines = OutlineHelper.outlinesToLineList(outlines, pageTree, destinationNameTree);
+
+            // Write line list into the text file.
+            saveLinesToFile(lines, outlinesFile);
+        } finally {
+            if (document != null) {
+                document.close();
+            }
         }
-        HashMap<String, String> namedDestinations = SimpleNamedDestination.getNamedDestination(reader, false);
-        if (namedDestinations == null) {
-            namedDestinations = new HashMap<>();
-        }
-
-        // Close original PDF file.
-        reader.close();
-
-        // Convert.
-        final List<String> lines = BookmarksHelper.bookmarkListToStringList(bookmarks, namedDestinations);
-
-        // Write Outlines (bookmarks) list into the text file.
-        saveLinesToFile(lines, outlinesFile);
     }
 
     /**
@@ -161,46 +227,52 @@ public class IOHelper {
      * 
      * @param pdfFile
      *            Source PDF file.
-     * @param bookmarksFile
-     *            File with bookmarks in user-frendly format.
+     * @param outlinesFile
+     *            File with Outlines (bookmarks) in user-frendly format.
      * @throws IOException
-     * @throws DocumentException
      */
     /*
      * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/bookmark-examples/
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/CreateBookmarks.java?view=markup
      */
-    public static void updateOutlines(final File pdfFile, final File bookmarksFile)
-            throws IOException, DocumentException {
+    public static void updateOutlines(final File pdfFile, final File outlinesFile) throws IOException {
         // Read bookmark list from text file.
-        final List<String> lines = readLinesFromFile(bookmarksFile);
+        final List<String> lines = readLinesFromFile(outlinesFile);
 
-        // Convert.
-        final List<HashMap<String, Object>> bookmarks = BookmarksHelper.stringListToBookmarkList(lines);
+        PDDocument document = null;
+        try {
+            // Open PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
+            }
 
-        // Create temporary PDF file for result.
-        if (TEMP_PDF.exists()) {
-            TEMP_PDF.delete();
+            // Get data from PDF file.
+            final PDDocumentCatalog documentCatalog = document.getDocumentCatalog();
+            final PDPageTree pageTree = documentCatalog.getPages();
+
+            // Convert.
+            final PDDocumentOutline documentOutline = OutlineHelper.lineListToOutlines(pageTree, lines);
+
+            // Set outlines.
+            documentCatalog.setDocumentOutline(documentOutline);
+
+            // Create temporary PDF file for result.
+            if (TEMP_PDF.exists()) {
+                TEMP_PDF.delete();
+            }
+
+            // Save result to temporary PDF file.
+            document.save(TEMP_PDF);
+
+            // Replace original PDF file.
+            pdfFile.delete();
+            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
+        } finally {
+            if (document != null) {
+                document.close();
+            }
         }
-
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-        final FileOutputStream fos = new FileOutputStream(TEMP_PDF);
-        final PdfStamper stamper = new PdfStamper(reader, fos);
-
-        // Set bookmarks.
-        stamper.setOutlines(bookmarks);
-
-        // Close output PDF file.
-        stamper.close();
-        fos.close();
-
-        // Close original PDF file.
-        reader.close();
-
-        // Replace original PDF file.
-        pdfFile.delete();
-        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 
     /**
@@ -214,24 +286,30 @@ public class IOHelper {
      */
     /*
      * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/adding-metadata/
-     *      http://developers.itextpdf.com/examples/itext-action-second-edition/chapter-12/
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/ExtractMetadata.java?view=markup
      */
     public static void saveMetadata(final File pdfFile, final File metadataFile) throws IOException {
-        // Read PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
+        PDDocument document = null;
+        try {
+            // Read PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
+            }
 
-        // Get Metadata from PDF file.
-        final Map<String, String> metadata = reader.getInfo();
+            // Get data from PDF file.
+            final PDDocumentInformation documentInformation = document.getDocumentInformation();
 
-        // Convert.
-        final List<String> lines = MetadataHelper.metadataToStringList(metadata);
+            // Convert.
+            final List<String> lines = MetadataHelper.metadataToLineList(documentInformation);
 
-        // Write Metadata list into the text file.
-        saveLinesToFile(lines, metadataFile);
-
-        // Close original PDF file.
-        reader.close();
+            // Write line list into the text file.
+            saveLinesToFile(lines, metadataFile);
+        } finally {
+            if (document != null) {
+                document.close();
+            }
+        }
     }
 
     /**
@@ -242,132 +320,86 @@ public class IOHelper {
      * @param metadataFile
      *            File with Metadata in user-frendly format.
      * @throws IOException
-     * @throws DocumentException
      */
     /*
      * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/adding-metadata/
-     *      http://developers.itextpdf.com/examples/itext-action-second-edition/chapter-12/
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/ExtractMetadata.java?view=markup
      */
-    public static void updateMetadata(final File pdfFile, final File metadataFile)
-            throws IOException, DocumentException {
-        // Read Metadata from text file.
+    public static void updateMetadata(final File pdfFile, final File metadataFile) throws IOException {
+        // Read bookmark list from text file.
         final List<String> lines = readLinesFromFile(metadataFile);
 
-        // Convert.
-        final Map<String, String> newMetadata = MetadataHelper.stringListToMetadata(lines);
+        PDDocument document = null;
+        try {
+            // Open PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
+            }
 
-        // Create temporary PDF file for result.
-        if (TEMP_PDF.exists()) {
-            TEMP_PDF.delete();
-        }
+            // Convert.
+            final PDDocumentInformation documentInformation = MetadataHelper.stringListToMetadata(lines);
 
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-        final FileOutputStream fos = new FileOutputStream(TEMP_PDF);
-        final PdfStamper stamper = new PdfStamper(reader, fos);
+            // Set Metadata.
+            document.setDocumentInformation(documentInformation);
 
-        // Remove existing metadata.
-        final Map<String, String> originalMetadata = reader.getInfo();
-        for (String key : originalMetadata.keySet()) {
-            originalMetadata.put(key, null);
-        }
-        stamper.setMoreInfo(originalMetadata);
+            // Create temporary PDF file for result.
+            if (TEMP_PDF.exists()) {
+                TEMP_PDF.delete();
+            }
 
-        // Set Metadata.
-        stamper.setMoreInfo(newMetadata);
+            // Save result to temporary PDF file.
+            document.save(TEMP_PDF);
 
-        // Close output PDF file.
-        stamper.close();
-        fos.close();
-
-        // Close original PDF file.
-        reader.close();
-
-        // Replace original PDF file.
-        pdfFile.delete();
-        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
-    }
-
-    /*
-     * See:
-     *      http://developers.itextpdf.com/examples/itext-action-second-edition/chapter-16#614-kubrickdvds.java
-     */
-    private static void getAttachmentsPageLevel(final File pdfFile, final File outputDir)
-            throws IOException, DocumentException {
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-
-        // Extract attached files.
-        for (int i = 1; i <= reader.getNumberOfPages(); ++i) { // Page number starts from 1.
-            final PdfArray array = reader.getPageN(i).getAsArray(PdfName.ANNOTS);
-            if (array != null) {
-                for (int j = 0; j < array.size(); ++j) {
-                    final PdfDictionary annot = array.getAsDict(j);
-                    if (PdfName.FILEATTACHMENT.equals(annot.getAsName(PdfName.SUBTYPE))) {
-                        final PdfDictionary fs = annot.getAsDict(PdfName.FS);
-                        final PdfDictionary refs = fs.getAsDict(PdfName.EF);
-                        for (PdfName name : refs.getKeys()) {
-                            // Get file stream.
-                            final PRStream fileStream = (PRStream) refs.getAsStream(name);
-
-                            // File.
-                            final String filename = fs.getAsString(name).toString();
-                            final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + filename);
-
-                            // Save file content.
-                            saveBytesToFile(PdfReader.getStreamBytes(fileStream), file);
-                        }
-                    }
-                }
+            // Replace original PDF file.
+            pdfFile.delete();
+            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
+        } finally {
+            if (document != null) {
+                document.close();
             }
         }
-
-        // Close original PDF file.
-        reader.close();
     }
 
-    /*
-     * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/embedded-files/
-     */
-    private static void getAttachmentsDocumentLevel(final File pdfFile, final File outputDir)
-            throws IOException, DocumentException {
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-
-        // Extract attached files.
-        final PdfDictionary catalog = reader.getCatalog();
-        final PdfDictionary names = catalog.getAsDict(PdfName.NAMES);
+    private static void extractFiles(final File outputDir, final Map<String, PDComplexFileSpecification> names)
+            throws IOException {
         if (names != null) {
-            final PdfDictionary embeddedFiles = names.getAsDict(PdfName.EMBEDDEDFILES);
-            if (embeddedFiles != null) {
-                final PdfArray fileSpecs = embeddedFiles.getAsArray(PdfName.NAMES);
-                if (fileSpecs != null) {
-                    for (int i = 0; i < fileSpecs.size(); ++i) {
-                        final PdfDictionary fileArray = fileSpecs.getAsDict(i);
-                        if (fileArray != null) {
-                            final PdfDictionary refs = fileArray.getAsDict(PdfName.EF);
-                            for (PdfName name : refs.getKeys()) {
-                                // Get file stream.
-                                final PRStream fileStream = (PRStream) PdfReader
-                                        .getPdfObject(refs.getAsIndirectObject(name));
+            for (PDComplexFileSpecification fileSpec : names.values()) {
+                extractFile(outputDir, fileSpec);
+            }
+        }
+    }
 
-                                // File.
-                                final String filename = fileArray.getAsString(name).toString();
-                                final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + filename);
+    private static void extractFile(final File outputDir, final PDComplexFileSpecification fileSpec)
+            throws IOException {
+        final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + fileSpec.getFilename());
 
-                                // Save file content.
-                                saveBytesToFile(PdfReader.getStreamBytes(fileStream), file);
-                            }
-                        }
-                    }
+        final PDEmbeddedFile embeddedFile = getEmbeddedFile(fileSpec);
+        saveBytesToFile(embeddedFile.toByteArray(), file);
+
+    }
+
+    private static PDEmbeddedFile getEmbeddedFile(final PDComplexFileSpecification fileSpec) {
+        // Search for the first available alternative of the Embedded (attached) file.
+        if (fileSpec != null) {
+            //@formatter:off
+            final PDEmbeddedFile[] file = {
+                    fileSpec.getEmbeddedFileUnicode(), 
+                    fileSpec.getEmbeddedFileDos(), 
+                    fileSpec.getEmbeddedFileMac(), 
+                    fileSpec.getEmbeddedFileUnix(), 
+                    fileSpec.getEmbeddedFile()
+                };
+            //@formatter:on
+
+            for (PDEmbeddedFile embeddedFile : file) {
+                if (embeddedFile != null) {
+                    return embeddedFile;
                 }
             }
         }
 
-        // Close original PDF file.
-        reader.close();
+        return null;
     }
 
     /**
@@ -378,11 +410,51 @@ public class IOHelper {
      * @param outputDir
      *            Target directory.
      * @throws IOException
-     * @throws DocumentException
      */
-    public static void saveAttachments(final File pdfFile, final File outputDir) throws IOException, DocumentException {
-        getAttachmentsPageLevel(pdfFile, outputDir); // FIXME: Not works on a sample files: remove?
-        getAttachmentsDocumentLevel(pdfFile, outputDir);
+    /*
+     * See:
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/ExtractEmbeddedFiles.java?view=markup
+     */
+    public static void saveAttachments(final File pdfFile, final File outputDir) throws IOException {
+        PDDocument document = null;
+        try {
+            // Read PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
+            }
+
+            // Extract Embedded (attached) files.
+            final PDDocumentNameDictionary documentNameDictionary = new PDDocumentNameDictionary(
+                    document.getDocumentCatalog());
+            final PDEmbeddedFilesNameTreeNode embeddedFilesNameTree = documentNameDictionary.getEmbeddedFiles();
+            if (embeddedFilesNameTree != null) {
+                extractFiles(outputDir, embeddedFilesNameTree.getNames());
+
+                final List<PDNameTreeNode<PDComplexFileSpecification>> kids = embeddedFilesNameTree.getKids();
+                if (kids != null) {
+                    for (PDNameTreeNode<PDComplexFileSpecification> nameTreeNode : kids) {
+                        extractFiles(outputDir, nameTreeNode.getNames());
+                    }
+                }
+            }
+
+            // Extract Embedded (attached) from annotations.
+            for (PDPage page : document.getPages()) {
+                for (PDAnnotation annotation : page.getAnnotations()) {
+                    if (annotation instanceof PDAnnotationFileAttachment) {
+                        final PDAnnotationFileAttachment fileAttach = (PDAnnotationFileAttachment) annotation;
+
+                        final PDComplexFileSpecification fileSpec = (PDComplexFileSpecification) fileAttach.getFile();
+                        extractFile(outputDir, fileSpec);
+                    }
+                }
+            }
+        } finally {
+            if (document != null) {
+                document.close();
+            }
+        }
     }
 
     /**
@@ -391,45 +463,24 @@ public class IOHelper {
      * @param pdfFile
      *            Source PDF file.
      * @throws IOException
-     * @throws DocumentException
      */
-    /*
-     * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/embedded-files/
-     */
-    public static void removeAttachments(final File pdfFile) throws IOException, DocumentException {
-        // Create temporary PDF file for result.
-        if (TEMP_PDF.exists()) {
-            TEMP_PDF.delete();
-        }
-
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-        final FileOutputStream fos = new FileOutputStream(TEMP_PDF);
-        final PdfStamper stamper = new PdfStamper(reader, fos);
-
-        // Remove attached files.
-        final PdfDictionary catalog = reader.getCatalog();
-        final PdfDictionary names = catalog.getAsDict(PdfName.NAMES);
-        if (names != null) {
-            names.remove(PdfName.EMBEDDEDFILES);
-
-            // Clean dictionary.
-            if (names.size() == 0) {
-                catalog.remove(PdfName.NAMES);
+    public static void removeAttachments(final File pdfFile) throws IOException {
+        PDDocument document = null;
+        try {
+            // Read PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
             }
+
+            // Add the tree to the document catalog.
+            final PDDocumentNameDictionary documentNameDictionary = new PDDocumentNameDictionary(
+                    document.getDocumentCatalog());
+            documentNameDictionary.setEmbeddedFiles(null);
+            document.getDocumentCatalog().setNames(documentNameDictionary);
+        } finally {
+            document.close();
         }
-
-        // Close output PDF file.
-        stamper.close();
-        fos.close();
-
-        // Close original PDF file.
-        reader.close();
-
-        // Replace original PDF file.
-        pdfFile.delete();
-        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 
     /**
@@ -440,50 +491,53 @@ public class IOHelper {
      * @param attachmentFiles
      *            Files that will be attached (embedded).
      * @throws IOException
-     * @throws DocumentException
      */
     /*
      * See:
-     *      http://developers.itextpdf.com/examples/miscellaneous/embedded-files/
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/EmbeddedFiles.java?view=markup
      */
-    public static void addAttachments(final File pdfFile, final List<File> attachmentFiles)
-            throws IOException, DocumentException {
-        // Create temporary PDF file for result.
-        if (TEMP_PDF.exists()) {
-            TEMP_PDF.delete();
-        }
-
-        // Open PDF file.
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
-        final FileOutputStream fos = new FileOutputStream(TEMP_PDF);
-        final PdfStamper stamper = new PdfStamper(reader, fos);
-
-        // Add attachments.
-        if (attachmentFiles != null) {
-            for (File file : attachmentFiles) {
-                if (file != null) {
-                    if (file.exists() && file.isFile()) {
-                        final String filePath = file.getAbsolutePath();
-                        final String fileDisplay = file.getName();
-                        final PdfFileSpecification fs = PdfFileSpecification.fileEmbedded(stamper.getWriter(), filePath,
-                                fileDisplay, null);
-
-                        final String description = "";
-                        stamper.addFileAttachment(description, fs);
-                    }
-                }
+    public static void addAttachments(final File pdfFile, final List<File> attachmentFiles) throws IOException {
+        PDDocument document = null;
+        try {
+            // Read PDF file.
+            document = PDDocument.load(pdfFile);
+            if (document.isEncrypted()) {
+                throw new IOException("Document is encrypted.");
             }
+
+            // Embedded (attached) files are stored in a named tree.
+            final PDEmbeddedFilesNameTreeNode root = new PDEmbeddedFilesNameTreeNode();
+            final List<PDEmbeddedFilesNameTreeNode> kids = new ArrayList<PDEmbeddedFilesNameTreeNode>();
+            root.setKids(kids);
+
+            // Add the tree to the document catalog.
+            final PDDocumentNameDictionary documentNameDictionary = new PDDocumentNameDictionary(
+                    document.getDocumentCatalog());
+            documentNameDictionary.setEmbeddedFiles(root);
+            document.getDocumentCatalog().setNames(documentNameDictionary);
+
+            // For all Embedded (attached) files.
+            for (File file : attachmentFiles) {
+                final String filename = file.getName();
+
+                // First create the file specification, which holds the Embedded (attached) file.
+                final PDComplexFileSpecification complexFileSpecification = new PDComplexFileSpecification();
+                complexFileSpecification.setFile(filename);
+
+                // Create a dummy file stream, this would probably normally be a FileInputStream.
+                final ByteArrayInputStream fileStream = new ByteArrayInputStream(readBytesToFile(file));
+                final PDEmbeddedFile embededFile = new PDEmbeddedFile(document, fileStream);
+                complexFileSpecification.setEmbeddedFile(embededFile);
+
+                // Create a new tree node and add the Embedded (attached) file.
+                final PDEmbeddedFilesNameTreeNode embeddedFilesNameTree = new PDEmbeddedFilesNameTreeNode();
+                embeddedFilesNameTree.setNames(Collections.singletonMap(filename, complexFileSpecification));
+
+                // Add the new node as kid to the root node.
+                kids.add(embeddedFilesNameTree);
+            }
+        } finally {
+            document.close();
         }
-
-        // Close output PDF file.
-        stamper.close();
-        fos.close();
-
-        // Close original PDF file.
-        reader.close();
-
-        // Replace original PDF file.
-        pdfFile.delete();
-        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 }
