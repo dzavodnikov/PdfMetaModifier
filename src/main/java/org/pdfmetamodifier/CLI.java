@@ -50,14 +50,14 @@ public class CLI {
 
         //@formatter:off
         // Show program version.
-        final OptionSpecBuilder version             = parser.acceptsAll(
+        final OptionSpecBuilder version         = parser.acceptsAll(
                 Arrays.asList("v",  "version"   ), 
                 "Show program version."
                 )
                 ;
 
         // Help.
-        final OptionSpecBuilder help                = parser.acceptsAll(
+        final OptionSpecBuilder help            = parser.acceptsAll(
                 Arrays.asList("h",  "help"      ), 
                 "Print help."
                 )
@@ -65,7 +65,7 @@ public class CLI {
         help.forHelp();
 
         // PDF file.
-        final OptionSpec<File> pdf                  = parser.acceptsAll(
+        final OptionSpec<File> pdf              = parser.acceptsAll(
                 Arrays.asList("p",  "pdf"       ), 
                 "Source PDF file."
                 ).requiredUnless(version, help)
@@ -74,7 +74,7 @@ public class CLI {
                 ;
 
         // Save Outline (bookmarks).
-        final OptionSpec<File> saveOutlines         = parser.accepts(
+        final OptionSpec<File> saveOutlines     = parser.accepts(
                 "save-outlines", 
                 "Save Outline (bookmarks) to specified file."
                 ).availableIf(pdf)
@@ -82,7 +82,7 @@ public class CLI {
                 .ofType(File.class)
                 ;
         // Update Outline (bookmarks).
-        final OptionSpec<File> updateOutlines       = parser.accepts(
+        final OptionSpec<File> updateOutlines   = parser.accepts(
                 "update-outlines", 
                 "Update Outline (bookmarks) from specified file."
                 ).availableIf(pdf)
@@ -91,7 +91,7 @@ public class CLI {
                 ;
 
         // Save Metadata.
-        final OptionSpec<File> saveMetadata         = parser.accepts(
+        final OptionSpec<File> saveMetadata     = parser.accepts(
                 "save-metadata", 
                 "Save Metadata to specified file."
                 ).availableIf(pdf)
@@ -99,7 +99,7 @@ public class CLI {
                 .ofType(File.class)
                 ;
         // Update Metadata.
-        final OptionSpec<File> updateMetadata       = parser.accepts(
+        final OptionSpec<File> updateMetadata   = parser.accepts(
                 "update-metadata", 
                 "Update Metadata from specified file."
                 ).availableIf(pdf)
@@ -107,24 +107,24 @@ public class CLI {
                 .ofType(File.class)
                 ;
 
-        // Save Attachments.
-        final OptionSpec<File> saveAttachments      = parser.accepts(
-                "save-attachments", 
-                "Save Attachments to specified directory."
+        // Save Embedded (attached) files.
+        final OptionSpec<File> saveEmbedded     = parser.accepts(
+                "save-embedded", 
+                "Save Embedded (attached) files to specified directory."
                 ).availableIf(pdf)
                 .withRequiredArg()
                 .ofType(File.class)
                 ;
-        // Remove Attachments.
-        final OptionSpecBuilder removeAttachments   = parser.accepts(
-                "remove-attachments", 
-                "Remove Attachments from PDF file."
+        // Remove Embedded (attached) files.
+        final OptionSpecBuilder removeEmbedded  = parser.accepts(
+                "remove-embedded", 
+                "Remove Embedded (attached) files from PDF file."
                 ).availableIf(pdf)
                 ;
-        // Add Attachments.
-        final OptionSpec<File> addAttachment        = parser.accepts(
-                "add-attachment", 
-                "Add Attachment from specified file."
+        // Add Embedded (attached) files.
+        final OptionSpec<File> addEmbedded      = parser.accepts(
+                "add-embedded", 
+                "Add Embedded (attached) files from specified file."
                 ).availableIf(pdf)
                 .withRequiredArg()
                 .ofType(File.class)
@@ -171,27 +171,27 @@ public class CLI {
                     IOHelper.updateMetadata(pdfFile, updateMetadataFile);
                 }
 
-                // Save attached (embedded) files.
-                final File saveAttachmentsFile = options.valueOf(saveAttachments);
-                if (saveAttachmentsFile != null) {
-                    IOHelper.saveAttachments(pdfFile, saveAttachmentsFile);
+                // Save Embedded (attached) files.
+                final File saveEmbeddedFiles = options.valueOf(saveEmbedded);
+                if (saveEmbeddedFiles != null) {
+                    IOHelper.saveAttachments(pdfFile, saveEmbeddedFiles);
                 }
-                // Remove attached (embedded) files.
-                if (options.has(removeAttachments)) {
+                // Remove Embedded (attached) files.
+                if (options.has(removeEmbedded)) {
                     IOHelper.removeAttachments(pdfFile);
                 }
-                // Add attached (embedded) files.
-                final List<File> addAttachmentFile = options.valuesOf(addAttachment);
-                if (addAttachmentFile != null) {
-                    IOHelper.addAttachments(pdfFile, addAttachmentFile);
+                // Add Embedded (attached) files.
+                final List<File> addEmbeddedFile = options.valuesOf(addEmbedded);
+                if (addEmbeddedFile != null) {
+                    IOHelper.addAttachments(pdfFile, addEmbeddedFile);
                 }
             }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
         } catch (OptionException e) {
             System.out.println(e.getMessage()); // Print info about problem with parameters.
             System.out.println(); // Separator.
             parser.printHelpOn(System.out); // Print help.
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
     }
 }
