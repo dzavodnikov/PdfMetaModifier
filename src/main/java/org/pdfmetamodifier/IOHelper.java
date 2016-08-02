@@ -186,7 +186,7 @@ public class IOHelper {
      */
     /*
      * See:
-     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/CreateBookmarks.java?view=markup
+     *      https://svn.apache.org/viewvc/pdfbox/trunk/examples/src/main/java/org/apache/pdfbox/examples/pdmodel/PrintBookmarks.java?view=markup
      */
     public static void saveOutlines(final File pdfFile, final File outlinesFile) throws IOException {
         PDDocument document = null;
@@ -202,16 +202,13 @@ public class IOHelper {
 
             final PDDocumentOutline outlines = catalog.getDocumentOutline();
 
-            final PDPageTree pageTree = catalog.getPages();
+            final PDPageTree pages = catalog.getPages();
 
-            PDDestinationNameTreeNode destinationNameTree = null;
-            final PDDocumentNameDictionary nameDict = catalog.getNames();
-            if (nameDict != null) {
-                destinationNameTree = nameDict.getDests();
-            }
+            final PDDocumentNameDictionary namesDictionary = new PDDocumentNameDictionary(catalog);
+            final PDDestinationNameTreeNode destinations = namesDictionary.getDests();
 
             // Convert.
-            final List<String> lines = OutlineHelper.outlinesToLineList(outlines, pageTree, destinationNameTree);
+            final List<String> lines = OutlineHelper.outlinesToLineList(outlines, pages, destinations);
 
             // Write line list into the text file.
             saveLinesToFile(lines, outlinesFile);
@@ -248,14 +245,15 @@ public class IOHelper {
             }
 
             // Get data from PDF file.
-            final PDDocumentCatalog documentCatalog = document.getDocumentCatalog();
-            final PDPageTree pageTree = documentCatalog.getPages();
+            final PDDocumentCatalog catalog = document.getDocumentCatalog();
+
+            final PDPageTree pages = catalog.getPages();
 
             // Convert.
-            final PDDocumentOutline documentOutline = OutlineHelper.lineListToOutlines(pageTree, lines);
+            final PDDocumentOutline outlines = OutlineHelper.lineListToOutlines(pages, lines);
 
             // Set outlines.
-            documentCatalog.setDocumentOutline(documentOutline);
+            catalog.setDocumentOutline(outlines);
 
             // Create temporary PDF file for result.
             if (TEMP_PDF.exists()) {
@@ -298,10 +296,10 @@ public class IOHelper {
             }
 
             // Get data from PDF file.
-            final PDDocumentInformation documentInformation = document.getDocumentInformation();
+            final PDDocumentInformation information = document.getDocumentInformation();
 
             // Convert.
-            final List<String> lines = MetadataHelper.metadataToLineList(documentInformation);
+            final List<String> lines = MetadataHelper.metadataToLineList(information);
 
             // Write line list into the text file.
             saveLinesToFile(lines, metadataFile);
@@ -338,10 +336,10 @@ public class IOHelper {
             }
 
             // Convert.
-            final PDDocumentInformation documentInformation = MetadataHelper.stringListToMetadata(lines);
+            final PDDocumentInformation information = MetadataHelper.stringListToMetadata(lines);
 
             // Set Metadata.
-            document.setDocumentInformation(documentInformation);
+            document.setDocumentInformation(information);
 
             // Create temporary PDF file for result.
             if (TEMP_PDF.exists()) {
@@ -361,6 +359,13 @@ public class IOHelper {
         }
     }
 
+    private static void extractFile(final File outputDir, final PDComplexFileSpecification fileSpec)
+            throws IOException {
+        final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + fileSpec.getFilename());
+        final PDEmbeddedFile embeddedFile = getEmbeddedFile(fileSpec);
+        saveBytesToFile(embeddedFile.toByteArray(), file);
+    }
+
     private static void extractFiles(final File outputDir, final Map<String, PDComplexFileSpecification> names)
             throws IOException {
         if (names != null) {
@@ -370,28 +375,20 @@ public class IOHelper {
         }
     }
 
-    private static void extractFile(final File outputDir, final PDComplexFileSpecification fileSpec)
-            throws IOException {
-        final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + fileSpec.getFilename());
-
-        final PDEmbeddedFile embeddedFile = getEmbeddedFile(fileSpec);
-        saveBytesToFile(embeddedFile.toByteArray(), file);
-    }
-
     private static PDEmbeddedFile getEmbeddedFile(final PDComplexFileSpecification fileSpec) {
         // Search for the first available alternative of the Embedded (attached) file.
         if (fileSpec != null) {
             //@formatter:off
-            final PDEmbeddedFile[] file = {
+            final PDEmbeddedFile[] files = {
                     fileSpec.getEmbeddedFileUnicode(), 
+                    fileSpec.getEmbeddedFileUnix(), 
                     fileSpec.getEmbeddedFileDos(), 
                     fileSpec.getEmbeddedFileMac(), 
-                    fileSpec.getEmbeddedFileUnix(), 
                     fileSpec.getEmbeddedFile()
                 };
             //@formatter:on
 
-            for (PDEmbeddedFile embeddedFile : file) {
+            for (PDEmbeddedFile embeddedFile : files) {
                 if (embeddedFile != null) {
                     return embeddedFile;
                 }
@@ -472,11 +469,8 @@ public class IOHelper {
                 throw new IOException("Document is encrypted.");
             }
 
-            // Add the tree to the document catalog.
-            final PDDocumentNameDictionary documentNameDictionary = new PDDocumentNameDictionary(
-                    document.getDocumentCatalog());
-            documentNameDictionary.setEmbeddedFiles(null);
-            document.getDocumentCatalog().setNames(documentNameDictionary);
+            // Clean the tree to the document catalog.
+            document.getDocumentCatalog().setNames(null);
 
             // Create temporary PDF file for result.
             if (TEMP_PDF.exists()) {
@@ -522,10 +516,10 @@ public class IOHelper {
             root.setKids(kids);
 
             // Add the tree to the document catalog.
-            final PDDocumentNameDictionary documentNameDictionary = new PDDocumentNameDictionary(
+            final PDDocumentNameDictionary namesDictionary = new PDDocumentNameDictionary(
                     document.getDocumentCatalog());
-            documentNameDictionary.setEmbeddedFiles(root);
-            document.getDocumentCatalog().setNames(documentNameDictionary);
+            namesDictionary.setEmbeddedFiles(root);
+            document.getDocumentCatalog().setNames(namesDictionary);
 
             // For all Embedded (attached) files.
             for (File file : attachmentFiles) {
