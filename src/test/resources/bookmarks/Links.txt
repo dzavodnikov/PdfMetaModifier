@@ -3,4 +3,3 @@ https://www.w3.org/WAI/WCAG20/Techniques/working-examples/PDF2/bookmarks.odt
 
 http://developers.itextpdf.com/examples/miscellaneous/bookmark-examples/
 http://gitlab.itextsupport.com/itext/sandbox/blob/master/cmpfiles/stamper/cmp_changed_bookmarks.pdf
-

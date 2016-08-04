@@ -484,7 +484,9 @@ public class IOHelper {
             pdfFile.delete();
             Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
-            document.close();
+            if (document != null) {
+                document.close();
+            }
         }
     }
 
@@ -554,7 +556,9 @@ public class IOHelper {
             pdfFile.delete();
             Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
-            document.close();
+            if (document != null) {
+                document.close();
+            }
         }
     }
 }
