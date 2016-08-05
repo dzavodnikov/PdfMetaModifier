@@ -190,15 +190,15 @@ public class IOHelperTest {
                     StandardCopyOption.REPLACE_EXISTING);
 
             // Execute.
-            //IOHelper.removeAttachments(pdfFileCopy);
-            //IOHelper.saveAttachments(pdfFileCopy, tempAttachmentsFile);
+            IOHelper.removeAttachments(pdfFileCopy);
+            IOHelper.saveAttachments(pdfFileCopy, tempAttachmentsFile);
 
             // Check that dir is empty.
-            //assertEquals(0, tempAttachmentsFile.list().length);
+            assertEquals(0, tempAttachmentsFile.list().length);
 
             // Clean.
-
-            //dirDelete(tempAttachmentsFile);
+            pdfFileCopy.delete();
+            dirDelete(tempAttachmentsFile);
         }
     }
 }
