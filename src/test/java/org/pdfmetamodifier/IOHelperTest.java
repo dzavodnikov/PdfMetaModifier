@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.zip.CRC32;
 
 import org.junit.Test;
@@ -89,6 +90,7 @@ public class IOHelperTest {
         final String[] testFiles = new String[] { "bookmarks", "cmp_changed_bookmarks" };
         for (String filename : testFiles) {
             final String basePath = rootPath + File.separatorChar + filename;
+
             final File pdfFile = new File(basePath + ".pdf");
             final File bookmarksFile = new File(basePath + "_bookmarks.txt");
             final File tempBookmarksFile = new File(basePath + "_bookmarks_temp.txt");
@@ -115,6 +117,7 @@ public class IOHelperTest {
         final String[] testFiles = new String[] { "title-bar", "cmp_state_metadata" };
         for (String filename : testFiles) {
             final String basePath = rootPath + File.separatorChar + filename;
+
             final File pdfFile = new File(basePath + ".pdf");
             final File metadataFile = new File(basePath + "_metadata.txt");
             final File tempMetadataFile = new File(basePath + "_metadata_temp.txt");
@@ -141,9 +144,13 @@ public class IOHelperTest {
         final String[] testFiles = new String[] { "cmp_hello_with_attachment", "cmp_hello_with_attachments" };
         for (String filename : testFiles) {
             final String basePath = rootPath + File.separatorChar + filename;
+
             final File pdfFile = new File(basePath + ".pdf");
-            final File attachmentsFile = new File(basePath + "_metadata");
-            final File tempAttachmentsFile = new File(basePath + "_metadata_temp");
+            final File attachmentsFile = new File(basePath + "_files");
+
+            final File tempAttachmentsFile = new File(basePath + "_files_temp");
+            tempAttachmentsFile.mkdirs();
+            assertEquals(0, tempAttachmentsFile.list().length);
 
             // Execute.
             IOHelper.saveAttachments(pdfFile, tempAttachmentsFile);
@@ -153,6 +160,45 @@ public class IOHelperTest {
 
             // Clean.
             dirDelete(tempAttachmentsFile);
+        }
+    }
+
+    /**
+     * Test for {@link IOHelper#removeAttachments(File)}.
+     * 
+     * @throws IOException
+     */
+    @Test
+    public void removeAttachments() throws IOException {
+        final String rootPath = TEST_PATH + File.separatorChar + "attachments";
+        final String[] testFiles = new String[] { "cmp_hello_with_attachment", "cmp_hello_with_attachments" };
+        for (String filename : testFiles) {
+            final String basePath = rootPath + File.separatorChar + filename;
+
+            final File pdfFile = new File(basePath + ".pdf");
+
+            final String baseCopyPath = basePath + "_copy";
+
+            final File pdfFileCopy = new File(baseCopyPath + ".pdf");
+
+            final File tempAttachmentsFile = new File(baseCopyPath + "_metadata");
+            tempAttachmentsFile.mkdirs();
+            assertEquals(0, tempAttachmentsFile.list().length);
+
+            // Copy file.
+            Files.copy(Paths.get(pdfFile.getAbsolutePath()), Paths.get(pdfFileCopy.getAbsolutePath()),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            // Execute.
+            //IOHelper.removeAttachments(pdfFileCopy);
+            //IOHelper.saveAttachments(pdfFileCopy, tempAttachmentsFile);
+
+            // Check that dir is empty.
+            //assertEquals(0, tempAttachmentsFile.list().length);
+
+            // Clean.
+
+            //dirDelete(tempAttachmentsFile);
         }
     }
 }
