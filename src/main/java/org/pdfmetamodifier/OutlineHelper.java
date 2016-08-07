@@ -86,13 +86,13 @@ public class OutlineHelper {
         return cleanLine;
     }
 
-    private static Integer getOutlinesPageNumber(final PDPageDestination pageDestination, final PDPageTree pages) {
-        return pages.indexOf(pageDestination.getPage()) + 1;
+    private static Integer getOutlinesPageNumber(final PDPageDestination destinations, final PDPageTree pages) {
+        return pages.indexOf(destinations.getPage()) + 1;
     }
 
-    private static Integer getOutlinesPageNumber(final PDOutlineItem item, final PDPageTree pages,
+    private static Integer getOutlinesPageNumber(final PDOutlineItem outlineItem, final PDPageTree pages,
             final PDDestinationNameTreeNode destinations) throws IOException {
-        final PDDestination destination = item.getDestination();
+        final PDDestination destination = outlineItem.getDestination();
         if (destination != null) {
             if (destination instanceof PDPageDestination) {
                 final PDPageDestination pageDestination = (PDPageDestination) destination;
@@ -110,7 +110,7 @@ public class OutlineHelper {
         return null;
     }
 
-    private static String outlineToLine(final PDOutlineItem item, final PDPageTree pages,
+    private static String outlineToLine(final PDOutlineItem outlineItem, final PDPageTree pages,
             final PDDestinationNameTreeNode destinations, final int shift) throws IOException {
         // Shift.
         final StringBuilder bm = new StringBuilder();
@@ -119,10 +119,10 @@ public class OutlineHelper {
         }
 
         // Title.
-        final String title = item.getTitle();
+        final String title = outlineItem.getTitle();
 
         // Page number.
-        final Integer pageNumber = getOutlinesPageNumber(item, pages, destinations);
+        final Integer pageNumber = getOutlinesPageNumber(outlineItem, pages, destinations);
 
         // Convert Outline (bookmark) to line.
         if (pageNumber == null) {
@@ -132,15 +132,15 @@ public class OutlineHelper {
         }
     }
 
-    private static List<String> outlinesToLineList(final PDOutlineItem item, final PDPageTree pages,
+    private static List<String> outlinesToLineList(final PDOutlineItem outlineItem, final PDPageTree pages,
             final PDDestinationNameTreeNode destinations, final int shift) throws IOException {
         final List<String> lines = new ArrayList<>();
 
         // Add Outline (bookmark) line.
-        lines.add(outlineToLine(item, pages, destinations, shift));
+        lines.add(outlineToLine(outlineItem, pages, destinations, shift));
 
         // Add lines for children Outlines (bookmarks).
-        for (PDOutlineItem child : item.children()) {
+        for (PDOutlineItem child : outlineItem.children()) {
             lines.addAll(outlinesToLineList(child, pages, destinations, shift + 1));
         }
 
@@ -150,21 +150,23 @@ public class OutlineHelper {
     /**
      * Convert Outlines (bookmarks) to list of lines.
      * 
-     * @param documentOutline
+     * @param document
      *            Source Outlines (bookmarks) object.
-     * @param pageTree
+     * @param pages
      *            Pages of PDF file.
-     * @param destinationNameTree
+     * @param destinations
      *            Named destinations of PDF file. Can be <code>null</code>.
      * @return list of lines with Outlines (bookmarks) representation.
      * @throws IOException
      */
-    public static List<String> outlinesToLineList(final PDDocumentOutline documentOutline, final PDPageTree pageTree,
-            final PDDestinationNameTreeNode destinationNameTree) throws IOException {
+    public static List<String> outlinesToLineList(final PDDocumentOutline document, final PDPageTree pages,
+            final PDDestinationNameTreeNode destinations) throws IOException {
         final List<String> lines = new ArrayList<>();
 
-        for (PDOutlineItem outlineItem : documentOutline.children()) {
-            lines.addAll(outlinesToLineList(outlineItem, pageTree, destinationNameTree, 0));
+        if (document != null) {
+            for (PDOutlineItem outlineItem : document.children()) {
+                lines.addAll(outlinesToLineList(outlineItem, pages, destinations, 0));
+            }
         }
 
         return lines;
@@ -172,10 +174,8 @@ public class OutlineHelper {
 
     private static PDOutlineItem createOutlineItem(final String title) {
         final PDOutlineItem outlineItem = new PDOutlineItem();
-
         outlineItem.setTitle(title);
         outlineItem.closeNode();
-
         return outlineItem;
     }
 
@@ -184,6 +184,7 @@ public class OutlineHelper {
 
         final PDPageDestination destination = new PDPageFitDestination();
         destination.setPage(pages.get(pageNumber - 1));
+
         outlineItem.setDestination(destination);
 
         return outlineItem;

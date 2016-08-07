@@ -18,15 +18,9 @@
  */
 package org.pdfmetamodifier;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -58,122 +52,6 @@ public class IOHelper {
 
     protected static final File TEMP_PDF = new File(
             System.getProperty("java.io.tmpdir") + File.separatorChar + "TEMP.pdf");
-
-    private static List<String> readLinesFromFile(final File file) throws IOException {
-        final List<String> lines = new ArrayList<>();
-
-        if (file != null && file.exists()) {
-            FileInputStream fis = null;
-            InputStreamReader isr = null;
-            BufferedReader br = null;
-
-            try {
-                fis = new FileInputStream(file);
-                isr = new InputStreamReader(fis);
-                br = new BufferedReader(isr);
-
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    if (line.isEmpty()) {
-                        continue; // Ignore empty lines.
-                    }
-
-                    lines.add(line);
-                }
-            } finally {
-                if (br != null) {
-                    br.close();
-                }
-                if (isr != null) {
-                    isr.close();
-                }
-                if (fis != null) {
-                    fis.close();
-                }
-            }
-        }
-
-        return lines;
-    }
-
-    private static void saveLinesToFile(final List<String> lines, final File file) throws IOException {
-        if (file != null) {
-            if (file.exists()) {
-                file.delete();
-            }
-            if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
-            }
-
-            FileOutputStream fos = null;
-            OutputStreamWriter osw = null;
-            BufferedWriter bw = null;
-            try {
-                fos = new FileOutputStream(file);
-                osw = new OutputStreamWriter(fos);
-                bw = new BufferedWriter(osw);
-
-                for (String line : lines) {
-                    bw.write(line);
-                    bw.newLine();
-                }
-            } finally {
-                if (bw != null) {
-                    bw.close();
-                }
-                if (osw != null) {
-                    osw.close();
-                }
-                if (fos != null) {
-                    fos.close();
-                }
-            }
-        }
-    }
-
-    private static void saveBytesToFile(final byte[] bytes, final File file) throws IOException {
-        if (file != null) {
-            if (file.exists()) {
-                file.delete();
-            }
-            if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
-            }
-
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(file);
-
-                fos.write(bytes);
-            } finally {
-                if (fos != null) {
-                    fos.close();
-                }
-            }
-        }
-    }
-
-    private static byte[] readBytesToFile(final File file) throws IOException {
-        if (file != null) {
-            FileInputStream fis = null;
-            try {
-                final byte[] buffer = new byte[(int) file.length()];
-
-                fis = new FileInputStream(file);
-                if (fis.read(buffer) == -1) {
-                    throw new IOException("EOF reached while trying to read the whole file.");
-                }
-
-                return buffer;
-            } finally {
-                if (fis != null) {
-                    fis.close();
-                }
-            }
-        } else {
-            return null;
-        }
-    }
 
     /**
      * Save Outlines (bookmarks).
@@ -211,7 +89,7 @@ public class IOHelper {
             final List<String> lines = OutlineHelper.outlinesToLineList(outlines, pages, destinations);
 
             // Write line list into the text file.
-            saveLinesToFile(lines, outlinesFile);
+            Files.write(outlinesFile.toPath(), lines);
         } finally {
             if (document != null) {
                 document.close();
@@ -234,7 +112,7 @@ public class IOHelper {
      */
     public static void updateOutlines(final File pdfFile, final File outlinesFile) throws IOException {
         // Read bookmark list from text file.
-        final List<String> lines = readLinesFromFile(outlinesFile);
+        final List<String> lines = Files.readAllLines(outlinesFile.toPath());
 
         PDDocument document = null;
         try {
@@ -302,7 +180,7 @@ public class IOHelper {
             final List<String> lines = MetadataHelper.metadataToLineList(information);
 
             // Write line list into the text file.
-            saveLinesToFile(lines, metadataFile);
+            Files.write(metadataFile.toPath(), lines);
         } finally {
             if (document != null) {
                 document.close();
@@ -325,7 +203,7 @@ public class IOHelper {
      */
     public static void updateMetadata(final File pdfFile, final File metadataFile) throws IOException {
         // Read bookmark list from text file.
-        final List<String> lines = readLinesFromFile(metadataFile);
+        final List<String> lines = Files.readAllLines(metadataFile.toPath());
 
         PDDocument document = null;
         try {
@@ -363,7 +241,7 @@ public class IOHelper {
             throws IOException {
         final File file = new File(outputDir.getAbsolutePath() + File.separatorChar + fileSpec.getFilename());
         final PDEmbeddedFile embeddedFile = getEmbeddedFile(fileSpec);
-        saveBytesToFile(embeddedFile.toByteArray(), file);
+        Files.write(file.toPath(), embeddedFile.toByteArray());
     }
 
     private static void extractFiles(final File outputDir, final Map<String, PDComplexFileSpecification> names)
@@ -532,7 +410,7 @@ public class IOHelper {
                 complexFileSpecification.setFile(filename);
 
                 // Create a dummy file stream, this would probably normally be a FileInputStream.
-                final ByteArrayInputStream fileStream = new ByteArrayInputStream(readBytesToFile(file));
+                final ByteArrayInputStream fileStream = new ByteArrayInputStream(Files.readAllBytes(file.toPath()));
                 final PDEmbeddedFile embededFile = new PDEmbeddedFile(document, fileStream);
                 complexFileSpecification.setEmbeddedFile(embededFile);
 
