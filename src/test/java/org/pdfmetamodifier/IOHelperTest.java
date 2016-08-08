@@ -95,7 +95,7 @@ public class IOHelperTest {
      */
     @Test
     public void saveBookmarks() throws IOException {
-        final String rootPath = TEST_PATH + File.separatorChar + "bookmarks";
+        final String rootPath = TEST_PATH + File.separatorChar + "outlines";
         final String[] testFiles = new String[] { "bookmarks", "cmp_changed_bookmarks" };
         for (String filename : testFiles) {
             final String basePath = rootPath + File.separatorChar + filename;
@@ -123,9 +123,9 @@ public class IOHelperTest {
     @Test
     public void updateBookmarks() throws IOException {
         final Path originalPdfPath = Paths.get(TEST_PATH, "document.pdf");
-        final Path pdfPath = Paths.get(TEST_PATH, "bookmarks", "document.pdf");
-        final Path originalOutlinesPath = Paths.get(TEST_PATH, "bookmarks", "bookmarks_bookmarks.txt");
-        final Path outlinesPath = Paths.get(TEST_PATH, "bookmarks", "bookmarks_bookmarks_new.txt");
+        final Path pdfPath = Paths.get(TEST_PATH, "outlines", "document.pdf");
+        final Path originalOutlinesPath = Paths.get(TEST_PATH, "outlines", "bookmarks_bookmarks.txt");
+        final Path outlinesPath = Paths.get(TEST_PATH, "outlines", "bookmarks_bookmarks_new.txt");
 
         // Copy original file.
         Files.copy(originalPdfPath, pdfPath, StandardCopyOption.REPLACE_EXISTING);
