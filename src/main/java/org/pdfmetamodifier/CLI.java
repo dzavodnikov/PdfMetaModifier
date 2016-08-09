@@ -151,7 +151,7 @@ public class CLI {
             if (pdfFile != null) {
                 // Save Outline (bookmarks).
                 final File saveOutlinesFile = options.valueOf(saveOutlines);
-                if (saveOutlines != null) {
+                if (saveOutlinesFile != null) {
                     IOHelper.saveOutlines(pdfFile, saveOutlinesFile);
                 }
                 // Update Outline (bookmarks).
