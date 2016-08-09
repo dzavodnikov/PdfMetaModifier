@@ -31,7 +31,7 @@ import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 
@@ -182,7 +182,8 @@ public class OutlineHelper {
     private static PDOutlineItem createOutlineItem(final String title, final int pageNumber, final PDPageTree pages) {
         final PDOutlineItem outlineItem = createOutlineItem(title);
 
-        final PDPageDestination destination = new PDPageFitDestination();
+        final PDPageXYZDestination destination = new PDPageXYZDestination();
+        //destination.setTop(10000);
         destination.setPage(pages.get(pageNumber - 1));
 
         outlineItem.setDestination(destination);
