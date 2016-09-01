@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
 
 import org.apache.pdfbox.pdmodel.PDDestinationNameTreeNode;
 import org.apache.pdfbox.pdmodel.PDPageTree;
+import org.apache.pdfbox.pdmodel.interactive.action.PDAction;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDNamedDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
@@ -90,24 +92,44 @@ public class OutlineHelper {
         return pages.indexOf(destinations.getPage()) + 1;
     }
 
-    private static Integer getOutlinesPageNumber(final PDOutlineItem outlineItem, final PDPageTree pages,
+    private static Integer getDestinationPageNumber(final PDDestination destination, final PDPageTree pages,
             final PDDestinationNameTreeNode destinations) throws IOException {
-        final PDDestination destination = outlineItem.getDestination();
         if (destination != null) {
             if (destination instanceof PDPageDestination) {
                 final PDPageDestination pageDestination = (PDPageDestination) destination;
 
                 return getOutlinesPageNumber(pageDestination, pages);
             }
+
             if (destination instanceof PDNamedDestination) {
                 final PDNamedDestination namedDestination = (PDNamedDestination) destination;
 
                 final PDPageDestination pageDestination = destinations.getValue(namedDestination.getNamedDestination());
                 return getOutlinesPageNumber(pageDestination, pages);
             }
+
+            throw new RuntimeException(
+                    String.format("Unsupported type of bookmark destination: %s!", destination.getClass().getName()));
         }
 
         return null;
+    }
+
+    private static Integer getOutlinePageNumber(final PDOutlineItem outlineItem, final PDPageTree pages,
+            final PDDestinationNameTreeNode destinations) throws IOException {
+        final PDAction action = outlineItem.getAction();
+        if (action != null) {
+            if (action instanceof PDActionGoTo) {
+                final PDActionGoTo actionGoTo = (PDActionGoTo) action;
+
+                return getDestinationPageNumber(actionGoTo.getDestination(), pages, destinations);
+            }
+
+            throw new RuntimeException(
+                    String.format("Unsupported type of bookmark action: %s!", action.getClass().getName()));
+        }
+
+        return getDestinationPageNumber(outlineItem.getDestination(), pages, destinations);
     }
 
     private static String outlineToLine(final PDOutlineItem outlineItem, final PDPageTree pages,
@@ -122,7 +144,7 @@ public class OutlineHelper {
         final String title = outlineItem.getTitle();
 
         // Page number.
-        final Integer pageNumber = getOutlinesPageNumber(outlineItem, pages, destinations);
+        final Integer pageNumber = getOutlinePageNumber(outlineItem, pages, destinations);
 
         // Convert Outline (bookmark) to line.
         if (pageNumber == null) {
@@ -183,7 +205,6 @@ public class OutlineHelper {
         final PDOutlineItem outlineItem = createOutlineItem(title);
 
         final PDPageXYZDestination destination = new PDPageXYZDestination();
-        //destination.setTop(10000);
         destination.setPage(pages.get(pageNumber - 1));
 
         outlineItem.setDestination(destination);

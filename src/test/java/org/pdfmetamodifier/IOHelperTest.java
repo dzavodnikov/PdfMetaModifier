@@ -248,4 +248,14 @@ public class IOHelperTest {
             pdfPath.toFile().delete();
         }
     }
+
+    /**
+     * Test for {@link IOHelper#addAttachments(File, java.util.List)}.
+     * 
+     * @throws IOException
+     */
+    @Test
+    public void addAttachments() throws IOException {
+        // TODO
+    }
 }
