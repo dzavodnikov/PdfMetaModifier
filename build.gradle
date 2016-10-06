@@ -14,6 +14,23 @@ test {
      maxHeapSize = '512m' // To be compatible with Travis-CI infrastructure.
 }
 
+repositories {
+    mavenCentral()
+    jcenter()
+    maven {
+        name    'JitPack'
+        url     'https://jitpack.io/'
+    }
+}
+
+dependencies {
+    compile     'org.apache.pdfbox:pdfbox:2.+'
+    compile     'org.apache.pdfbox:xmpbox:2.+'
+    compile     'net.sf.jopt-simple:jopt-simple:5.+'
+    testCompile 'junit:junit:4.+'
+    testCompile 'org.mockito:mockito-core:1.+'
+}
+
 jar {
     // See: 
     //      https://stackoverflow.com/questions/6768295/
@@ -43,15 +60,6 @@ jar {
     exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA' // See: https://stackoverflow.com/questions/999489/
 }
 
-apply plugin: 'eclipse'
-
-// See: 
-//      https://stackoverflow.com/questions/10156847/
-eclipse.classpath {
-    downloadSources = true
-    downloadJavadoc = true
-}
-
 apply plugin: 'distribution'
 
 distributions.main {
@@ -66,25 +74,18 @@ distributions.main {
         }
     }
 }
+
 // See:
 //      https://discuss.gradle.org/t/501/
 tasks.withType(Tar){
     compression = Compression.GZIP  // Use *.tgz instead of *.tar.
 }
 
-repositories {
-    mavenCentral()
-    jcenter()
-    maven {
-        name    'JitPack'
-        url     'https://jitpack.io/'
-    }
-}
+apply plugin: 'eclipse'
 
-dependencies {
-    compile     'org.apache.pdfbox:pdfbox:2.+'
-    compile     'org.apache.pdfbox:xmpbox:2.+'
-    compile     'net.sf.jopt-simple:jopt-simple:5.+'
-    testCompile 'junit:junit:4.+'
-    testCompile 'org.mockito:mockito-core:1.+'
+// See: 
+//      https://stackoverflow.com/questions/10156847/
+eclipse.classpath {
+    downloadSources = true
+    downloadJavadoc = true
 }
