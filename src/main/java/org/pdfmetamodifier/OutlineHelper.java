@@ -88,8 +88,8 @@ public class OutlineHelper {
         return cleanLine;
     }
 
-    private static Integer getOutlinesPageNumber(final PDPageDestination destinations, final PDPageTree pages) {
-        return pages.indexOf(destinations.getPage()) + 1;
+    private static Integer getOutlinesPageNumber(final PDPageDestination pageDestination, final PDPageTree pages) {
+        return pages.indexOf(pageDestination.getPage()) + 1;
     }
 
     private static Integer getDestinationPageNumber(final PDDestination destination, final PDPageTree pages,
@@ -108,6 +108,7 @@ public class OutlineHelper {
                 return getOutlinesPageNumber(pageDestination, pages);
             }
 
+            // Should not happens.
             throw new RuntimeException(
                     String.format("Unsupported type of bookmark destination: %s!", destination.getClass().getName()));
         }
@@ -125,8 +126,7 @@ public class OutlineHelper {
                 return getDestinationPageNumber(actionGoTo.getDestination(), pages, destinations);
             }
 
-            throw new RuntimeException(
-                    String.format("Unsupported type of bookmark action: %s!", action.getClass().getName()));
+            // Ignore other actions.
         }
 
         return getDestinationPageNumber(outlineItem.getDestination(), pages, destinations);
