@@ -27,7 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.zip.CRC32;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -40,14 +40,15 @@ public class IOHelperTest {
 
     private final static String TEST_PATH = "src" + File.separatorChar + "test" + File.separatorChar + "resources";
 
-    private static long fileCRC32(final File file) throws IOException {
-        final CRC32 crc32 = new CRC32();
-        crc32.update(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
-        return crc32.getValue();
-    }
-
     private static void fileCompare(final File file1, final File file2) throws IOException {
-        assertEquals(fileCRC32(file1), fileCRC32(file2));
+        final List<String> linesFile1 = Files.readAllLines(Paths.get(file1.toURI()));
+        final List<String> linesFile2 = Files.readAllLines(Paths.get(file2.toURI()));
+
+        assertEquals(linesFile1.size(), linesFile2.size());
+
+        for (int i = 0; i < linesFile1.size(); ++i) {
+            assertEquals(linesFile1.get(i), linesFile2.get(i));
+        }
     }
 
     private static void fileIsEmpty(final File file) throws IOException {

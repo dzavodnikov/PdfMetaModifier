@@ -140,15 +140,15 @@ public class IOHelper {
 
             // Save result to temporary PDF file.
             document.save(TEMP_PDF);
-
-            // Replace original PDF file.
-            pdfFile.delete();
-            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             if (document != null) {
                 document.close();
             }
         }
+
+        // Replace original PDF file.
+        pdfFile.delete();
+        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 
     /**
@@ -226,15 +226,15 @@ public class IOHelper {
 
             // Save result to temporary PDF file.
             document.save(TEMP_PDF);
-
-            // Replace original PDF file.
-            pdfFile.delete();
-            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             if (document != null) {
                 document.close();
             }
         }
+
+        // Replace original PDF file.
+        pdfFile.delete();
+        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 
     private static void extractFile(final File outputDir, final PDComplexFileSpecification fileSpec)
@@ -357,15 +357,15 @@ public class IOHelper {
 
             // Save result to temporary PDF file.
             document.save(TEMP_PDF);
-
-            // Replace original PDF file.
-            pdfFile.delete();
-            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             if (document != null) {
                 document.close();
             }
         }
+
+        // Replace original PDF file.
+        pdfFile.delete();
+        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 
     /**
@@ -429,14 +429,14 @@ public class IOHelper {
 
             // Save result to temporary PDF file.
             document.save(TEMP_PDF);
-
-            // Replace original PDF file.
-            pdfFile.delete();
-            Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
         } finally {
             if (document != null) {
                 document.close();
             }
         }
+
+        // Replace original PDF file.
+        pdfFile.delete();
+        Files.move(Paths.get(TEMP_PDF.toURI()), Paths.get(pdfFile.toURI()));
     }
 }
