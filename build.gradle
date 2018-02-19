@@ -24,11 +24,20 @@ repositories {
 }
 
 dependencies {
-    compile     'org.apache.pdfbox:pdfbox:2.+'
-    compile     'org.apache.pdfbox:xmpbox:2.+'
-    compile     'net.sf.jopt-simple:jopt-simple:5.+'
-    testCompile 'junit:junit:4.+'
-    testCompile 'org.mockito:mockito-core:1.+'
+    // https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
+    compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.8'
+
+    // https://mvnrepository.com/artifact/org.apache.pdfbox/xmpbox
+    compile group: 'org.apache.pdfbox', name: 'xmpbox', version: '2.0.8'
+
+    // https://mvnrepository.com/artifact/net.sf.jopt-simple/jopt-simple
+    compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '5.0.4'
+
+    // https://mvnrepository.com/artifact/junit/junit
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.15.0'
 }
 
 jar {
