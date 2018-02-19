@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 PdfMetaModifier Team
+ * Copyright (c) 2012-2018 PdfMetaModifier Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ import org.apache.pdfbox.pdmodel.PDDocumentInformation;
  */
 public class MetadataHelper {
 
-    public static final String  METADATA_LINE_TEMPLATE = "%s" + OutlineHelper.SEPARATOR + "%s";
+    public static final String METADATA_LINE_TEMPLATE = "%s" + OutlineHelper.SEPARATOR + "%s";
 
-    public static final Pattern METADATA_LINE_PATTERN  = Pattern
+    public static final Pattern METADATA_LINE_PATTERN = Pattern
             .compile("(?<key>.+)\\" + OutlineHelper.SEPARATOR + "(?<value>.*)");
 
     /**

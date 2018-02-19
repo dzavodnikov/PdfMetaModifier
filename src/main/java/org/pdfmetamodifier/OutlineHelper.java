@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 PdfMetaModifier Team
+ * Copyright (c) 2012-2018 PdfMetaModifier Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,16 +44,16 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlin
  */
 public class OutlineHelper {
 
-    protected static final String  SEPARATOR                            = "|";
+    protected static final String SEPARATOR = "|";
 
-    protected static final String  OUTLINE_TEMPLATE_WITHOUT_PAGE_NUMBER = "%s%s";
-    protected static final String  OUTLINE_TEMPLATE_WITH_PAGE_NUMBER    = OUTLINE_TEMPLATE_WITHOUT_PAGE_NUMBER
+    protected static final String OUTLINE_TEMPLATE_WITHOUT_PAGE_NUMBER = "%s%s";
+
+    protected static final String OUTLINE_TEMPLATE_WITH_PAGE_NUMBER    = OUTLINE_TEMPLATE_WITHOUT_PAGE_NUMBER
             + SEPARATOR + "%d";
 
-    protected static final String  SHIFT                                = "    ";
+    protected static final String SHIFT = "    ";
 
-    protected static final Pattern OUTLINE_LINE_PATTERN                 = Pattern
-            .compile("^(?<shift>\\s*)(?<title>\\S.*)$");
+    protected static final Pattern OUTLINE_LINE_PATTERN = Pattern.compile("^(?<shift>\\s*)(?<title>\\S.*)$");
 
     /**
      * Clean Outline (bookmark) title from not common used symbols.

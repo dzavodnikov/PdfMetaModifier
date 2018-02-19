@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 PdfMetaModifier Team
+ * Copyright (c) 2012-2018 PdfMetaModifier Team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 package org.pdfmetamodifier;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -156,6 +156,7 @@ public class OutlineHelperTest {
         final PDPageTree pageTree = mock(PDPageTree.class);
         final List<PDPage> mockPages = new ArrayList<>();
         when(pageTree.get(anyInt())).then(new Answer<PDPage>() {
+
             @Override
             public PDPage answer(final InvocationOnMock invocation) throws Throwable {
                 final int idx = (int) invocation.getArguments()[0];
@@ -166,6 +167,7 @@ public class OutlineHelperTest {
             }
         });
         when(pageTree.indexOf(any(PDPage.class))).then(new Answer<Integer>() {
+
             @Override
             public Integer answer(final InvocationOnMock invocation) throws Throwable {
                 final PDPage page = (PDPage) invocation.getArguments()[0];
