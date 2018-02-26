@@ -93,6 +93,14 @@ tasks.withType(Tar){
 apply plugin: 'eclipse'
 
 // See: 
+//      https://stackoverflow.com/questions/32340929/
+allprojects {
+    eclipse.project {
+        natures 'org.eclipse.buildship.core.gradleprojectnature'
+    }
+}
+
+// See: 
 //      https://stackoverflow.com/questions/10156847/
 eclipse.classpath {
     downloadSources = true
